@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Newtonsoft.Json;
@@ -8,26 +10,33 @@ namespace cosmosdb_deleter
 {
     public class CosmosDBDeleter
     {
-        private DocumentClient client;
+        private CosmosClient cosmosClient;
 
-        private Uri cosmosUrl;
-
-        public CosmosDBDeleter(Uri cosmosUrl, string cosmosKey)
+        public CosmosDBDeleter(string cosmosUrl, string cosmosKey)
         {
-            this.cosmosUrl = cosmosUrl;
-            this.client = new DocumentClient(cosmosUrl, cosmosKey);
+            this.cosmosClient = new CosmosClient(cosmosUrl, cosmosKey);
         }
 
-        public IQueryable<Document> QueryDocuments(string query)
+        public FeedIterator<Document> GetDocumentFeed(string databaseName, string containerName, string query)
         {
-            return client.CreateDocumentQuery<Document>(cosmosUrl, query, new FeedOptions() { EnableCrossPartitionQuery = true });
+            var database = cosmosClient.GetDatabase(databaseName);
+            var container = database.GetContainer(containerName);
+
+            var queryDef = new QueryDefinition(query);
+            var queryIterator = container.GetItemQueryIterator<Document>(queryDef);
+
+            return queryIterator;
         }
 
-        public void PrintDocuments(IQueryable<Document> documents)
+        public async Task PrintDocuments(FeedIterator<Document> feed)
         {
-            foreach( var d in documents)
+            while (feed.HasMoreResults)
             {
-              JsonConvert.SerializeObject(d, Formatting.Indented);
+                var response = await feed.ReadNextAsync();
+                foreach (var document in response.Resource)
+                {
+                    Console.WriteLine(JsonConvert.SerializeObject(document, Formatting.Indented)); 
+                }
             }
         }
     }
