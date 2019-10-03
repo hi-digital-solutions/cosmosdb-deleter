@@ -6,4 +6,12 @@
     <RootNamespace>cosmosdb_deleter</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.6.0" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.2.0" />
+    <PackageReference Include="Microsoft.Azure.DocumentDB" Version="2.7.0" />
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.7.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+  </ItemGroup>
+
 </Project>
